@@ -1,0 +1,6 @@
+{
+  "name": "CSV Viewer Online — Free & 100% Client-Side",
+  "description": "Open, edit, sort, and search CSV and JSON files directly in your browser. 100% client-side with zero data uploads.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,1090 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSV Viewer Online — Free, Fast &amp; 100% Client-Side</title>
+    <meta
+      name="description"
+      content="Open, edit, sort, and search CSV and JSON files directly in your browser. Nothing is uploaded — it is parsed on your own device."
+    />
+    <meta name="keywords" content="csv viewer online, free csv editor, view csv online, sort csv online, csv to json, private csv reader, client side csv viewer" />
+    <meta name="author" content="CSV Viewer Online" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <!-- OpenGraph Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="CSV Viewer Online — Free, Fast &amp; 100% Client-Side" />
+    <meta
+      property="og:description"
+      content="Open, edit, sort, and search your file. Nothing is uploaded — it is parsed on your own device."
+    />
+    <meta property="og:site_name" content="CSV Viewer Online" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CSV Viewer Online — Free, Fast &amp; 100% Client-Side" />
+    <meta
+      name="twitter:description"
+      content="Open, edit, sort, and search your file. Nothing is uploaded — it is parsed on your own device."
+    />
+
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS CDN & Lucide Icons CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace'],
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Structured JSON-LD Schema: WebApplication & FAQPage -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebApplication",
+            "name": "CSV Viewer Online",
+            "operatingSystem": "All",
+            "applicationCategory": "ProductivityApplication",
+            "browserRequirements": "Requires JavaScript and HTML5 FileReader API support.",
+            "description": "Open, edit, sort, and search your file. Nothing is uploaded — it is parsed on your own device.",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "featureList": [
+              "100% Private local browser file parsing",
+              "Instant column sorting (ascending and descending)",
+              "Fast full-text table search and row filtering",
+              "Inline spreadsheet cell editing and row additions",
+              "One-click Download CSV and Download JSON exports"
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "Is my data uploaded to any server?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. All parsing and viewing happens 100% locally on your computer inside your browser tab. Your files and data never touch any remote server, database, or analytics tracker."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can I edit data and download the updated file?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. You can click any cell to edit its value directly, add new rows, sort columns, and click Download CSV or Download JSON to save your changes immediately."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What file types can I open?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "You can open CSV files (comma-separated), TSV files (tab-separated), semicolon-separated spreadsheets, and standard JSON arrays."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does this work offline?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Once the page is loaded, you can disconnect from the internet and continue opening, editing, searching, and exporting files completely offline."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+
+    <style>
+      :root {
+        --grid-line: rgba(15, 23, 42, 0.04);
+      }
+      .dark {
+        --grid-line: rgba(255, 255, 255, 0.04);
+      }
+      .bg-subtle-grid {
+        background-size: 24px 24px;
+        background-image: 
+          linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+          linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+      }
+      .tabular-nums {
+        font-variant-numeric: tabular-nums;
+      }
+      .balance-text {
+        text-wrap: balance;
+      }
+      /* Custom scrollbar for spreadsheet */
+      .custom-scroll::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      .custom-scroll::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scroll::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.3);
+        border-radius: 4px;
+      }
+      .custom-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(148, 163, 184, 0.5);
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white bg-subtle-grid transition-colors duration-150 flex flex-col justify-between">
+    <!-- Top Navigation Header -->
+    <header class="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md sticky top-0 z-30">
+      <div class="max-w-[1360px] mx-auto flex items-center justify-between gap-6 px-4 sm:px-6 py-3.5">
+        <!-- Brand Wordmark -->
+        <a href="#app" class="flex items-center gap-2.5 text-base font-bold tracking-tight text-slate-900 dark:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded">
+          <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-xs">
+            <i data-lucide="table-2" class="w-4 h-4"></i>
+          </div>
+          <span>CSV Viewer Online</span>
+        </a>
+
+        <!-- Navigation Links -->
+        <nav aria-label="Quick links" class="hidden sm:flex items-center gap-6 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400">
+          <a href="#how-to-use" class="hover:text-slate-900 dark:hover:text-white transition-colors">How to Use</a>
+          <a href="#privacy" class="hover:text-slate-900 dark:hover:text-white transition-colors">Privacy</a>
+          <a href="#faq" class="hover:text-slate-900 dark:hover:text-white transition-colors">FAQ</a>
+        </nav>
+
+        <!-- Right Action: Sample & Theme Toggle -->
+        <div class="flex items-center gap-2">
+          <button
+            id="btn-sample-top"
+            type="button"
+            class="px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap shrink-0"
+          >
+            Try Sample File
+          </button>
+          <button
+            id="btn-theme-toggle"
+            type="button"
+            aria-label="Toggle theme"
+            class="p-2 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          >
+            <i data-lucide="sun-moon" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main id="app" class="max-w-[1360px] mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 flex-1">
+      
+      <!-- ======================================================== -->
+      <!-- INITIAL STATE: Centered Hero & Prominent Drag-and-Drop   -->
+      <!-- ======================================================== -->
+      <section id="initial-drop-view" class="max-w-2xl mx-auto text-center pt-2 sm:pt-6 pb-6 scroll-mt-20 transition-all duration-300">
+        <!-- Privacy Badge -->
+        <div class="inline-flex items-center gap-2 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/80 rounded-full mb-4">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 shrink-0"></i>
+          <span>100% Private · Processed locally in your browser</span>
+        </div>
+
+        <!-- Centered Title -->
+        <h1 class="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 dark:text-white balance-text">
+          CSV Viewer Online
+        </h1>
+
+        <!-- Plain-English Copy Specification -->
+        <p class="mt-3 text-base sm:text-lg text-slate-600 dark:text-slate-400 balance-text max-w-xl mx-auto leading-relaxed">
+          Open, edit, sort, and search your file. Nothing is uploaded — it is parsed on your own device.
+        </p>
+
+        <!-- Prominent Drag-and-Drop Box -->
+        <div
+          id="dropzone-area"
+          class="mt-8 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 bg-white dark:bg-slate-900 rounded-2xl p-8 sm:p-12 shadow-xs transition-all duration-150 cursor-pointer group"
+        >
+          <div class="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform duration-150">
+            <i data-lucide="upload-cloud" class="w-7 h-7"></i>
+          </div>
+
+          <p class="text-lg font-semibold text-slate-900 dark:text-white">
+            Drag and drop your file here
+          </p>
+          <p class="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+            Supports CSV, TSV, or JSON files
+          </p>
+
+          <div class="mt-6">
+            <label
+              for="file-input"
+              class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-xl shadow-xs transition-colors cursor-pointer"
+            >
+              <i data-lucide="folder-open" class="w-4 h-4"></i>
+              <span>Browse file</span>
+              <input
+                id="file-input"
+                type="file"
+                accept=".csv,.tsv,.json,.txt"
+                class="sr-only"
+              />
+            </label>
+          </div>
+
+          <div class="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+            <span>Or press <kbd class="px-1.5 py-0.5 font-mono text-[11px] bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">Ctrl+V</kbd> to paste</span>
+            <span aria-hidden="true">·</span>
+            <button
+              id="btn-sample-drop"
+              type="button"
+              class="text-indigo-600 dark:text-indigo-400 font-medium hover:underline"
+            >
+              Open a sample dataset
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- PROGRESSIVE DISCLOSURE: Spreadsheet View (Hidden initially) -->
+      <!-- ======================================================== -->
+      <section id="spreadsheet-view" class="hidden transition-all duration-300">
+        <!-- Top Toolbar -->
+        <div class="mb-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-3 sm:px-4 sm:py-3 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+          
+          <!-- File info & search -->
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+              <span id="active-filename" class="font-semibold text-slate-900 dark:text-white max-w-[200px] sm:max-w-xs truncate">
+                filename.csv
+              </span>
+              <span aria-hidden="true" class="text-slate-300 dark:text-slate-700">·</span>
+              <span id="active-record-count" class="tabular-nums font-medium text-slate-700 dark:text-slate-300">
+                0 rows · 0 columns
+              </span>
+            </div>
+
+            <!-- Instant Search Input -->
+            <div class="relative w-full sm:w-64">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              <input
+                id="table-search-input"
+                type="search"
+                aria-label="Search rows"
+                placeholder="Search in table..."
+                class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          <!-- Actions: Add Row, Download CSV, Download JSON, Open New File -->
+          <div class="flex flex-wrap items-center gap-2 self-end md:self-center">
+            <button
+              id="btn-add-row"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
+            >
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>Add row</span>
+            </button>
+
+            <button
+              id="btn-copy-table"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
+            >
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span id="copy-table-label">Copy</span>
+            </button>
+
+            <button
+              id="btn-download-csv"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 rounded-lg shadow-2xs transition-colors whitespace-nowrap"
+            >
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Download CSV</span>
+            </button>
+
+            <button
+              id="btn-download-json"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap"
+            >
+              <i data-lucide="file-code" class="w-3.5 h-3.5 text-slate-500"></i>
+              <span>Download JSON</span>
+            </button>
+
+            <button
+              id="btn-open-another"
+              type="button"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white rounded-lg transition-colors whitespace-nowrap"
+            >
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              <span>Close</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Spreadsheet Table Container -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-2xs">
+          <div class="max-h-[620px] overflow-auto custom-scroll relative">
+            <table class="w-full border-collapse text-left text-xs">
+              <thead id="spreadsheet-thead" class="sticky top-0 z-10 bg-slate-100/90 dark:bg-slate-950/90 backdrop-blur-xs border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-semibold select-none">
+              </thead>
+              <tbody id="spreadsheet-tbody" class="divide-y divide-slate-100 dark:divide-slate-800/80 font-mono text-[13px] tabular-nums">
+              </tbody>
+            </table>
+
+            <!-- Empty Search State -->
+            <div id="table-empty-search" class="hidden py-16 text-center text-slate-500 dark:text-slate-400">
+              <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-2 text-slate-400"></i>
+              <p class="text-sm font-medium">No matching rows found</p>
+              <p class="text-xs mt-1">Try clearing your search query above.</p>
+            </div>
+          </div>
+
+          <!-- Bottom Footer Bar -->
+          <div class="px-4 py-2.5 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 flex flex-wrap items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <span id="footer-row-hint">Click any cell to edit. Changes are kept in your browser.</span>
+            <span id="footer-sort-hint">Click column headers to sort.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Monetization / Product Recommendation CTA Slot (id="ad-slot") -->
+      <aside
+        id="ad-slot"
+        aria-label="Product Recommendation"
+        class="mt-12 max-w-3xl mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs"
+      >
+        <div class="flex items-center gap-3.5">
+          <div class="w-9 h-9 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+            <i data-lucide="shield" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+              Privacy First
+            </div>
+            <p class="text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 mt-0.5">
+              Need to inspect large private datasets without cloud uploads?
+            </p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              100% of processing runs in memory on your computer. Disconnect from the internet anytime.
+            </p>
+          </div>
+        </div>
+        <a
+          href="#privacy"
+          class="px-3.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors whitespace-nowrap shrink-0 self-end sm:self-center"
+        >
+          Learn more
+        </a>
+      </aside>
+
+      <!-- Plain-English Documentation Section -->
+      <article id="how-to-use" class="mt-16 pt-10 border-t border-slate-200 dark:border-slate-800 max-w-3xl mx-auto">
+        <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white balance-text">
+          How to Use CSV Viewer Online
+        </h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          A fast and lightweight online spreadsheet viewer designed for immediate file inspection and quick edits.
+        </p>
+
+        <div class="mt-6 space-y-4">
+          <div class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+              1
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Select or drop your file</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                Click <strong>Browse file</strong> or drag your <code class="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">.csv</code>, <code class="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">.tsv</code>, or <code class="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">.json</code> file into the box. You can also paste copied data directly with <kbd class="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-1 rounded">Ctrl+V</kbd>.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+              2
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Sort, search, and edit cells</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                Click any column title to sort from lowest to highest or vice versa. Type in the search box to filter rows instantly. Click on any cell to edit its value directly.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <div class="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+              3
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Download your results</h3>
+              <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                Save your changes by clicking <strong>Download CSV</strong> or <strong>Download JSON</strong>. Your downloaded file is created directly on your device.
+              </p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- Privacy & Offline Guarantee Section -->
+      <section id="privacy" class="mt-14 pt-10 border-t border-slate-200 dark:border-slate-800 max-w-3xl mx-auto">
+        <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white balance-text">
+          Privacy &amp; Security Guarantee
+        </h2>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+          Open, edit, sort, and search your file. Nothing is uploaded — it is parsed on your own device.
+        </p>
+
+        <div class="mt-4 p-4 rounded-xl bg-slate-100/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+          Unlike ordinary web apps that upload files to a cloud server to convert or render them, CSV Viewer Online processes 100% of your data using your browser's native JavaScript engine and HTML5 FileReader API. You can test this by disconnecting your internet connection: the entire viewer, editor, and exporter will continue working without interruption.
+        </div>
+      </section>
+
+      <!-- FAQ Section -->
+      <section id="faq" class="mt-14 pt-10 border-t border-slate-200 dark:border-slate-800 max-w-3xl mx-auto">
+        <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-6 balance-text">
+          Frequently Asked Questions
+        </h2>
+
+        <div class="space-y-4">
+          <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Is my data uploaded to any server?</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+              No. All parsing and viewing happens 100% locally on your computer inside your browser tab. Your files and data never touch any remote server, database, or analytics tracker.
+            </p>
+          </div>
+
+          <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Can I edit data and download the updated file?</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+              Yes. You can click any cell to edit its value directly, add new rows, sort columns, and click Download CSV or Download JSON to save your changes immediately.
+            </p>
+          </div>
+
+          <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">What file types can I open?</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+              You can open CSV files (comma-separated), TSV files (tab-separated), semicolon-separated spreadsheets, and standard JSON arrays.
+            </p>
+          </div>
+
+          <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Does this work offline?</h3>
+            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed">
+              Yes. Once the page is loaded, you can disconnect from the internet and continue opening, editing, searching, and exporting files completely offline.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Semantic Footer -->
+    <footer class="border-t border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-950 py-6 text-xs text-slate-500 dark:text-slate-400">
+      <div class="max-w-[1360px] mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <p>CSV Viewer Online · 100% Client-Side Spreadsheet Viewer &amp; Editor</p>
+        <div class="flex items-center gap-5">
+          <a href="#app" class="hover:text-slate-900 dark:hover:text-white transition-colors">Back to top</a>
+          <a href="#how-to-use" class="hover:text-slate-900 dark:hover:text-white transition-colors">How to Use</a>
+          <a href="#privacy" class="hover:text-slate-900 dark:hover:text-white transition-colors">Privacy</a>
+          <a href="#faq" class="hover:text-slate-900 dark:hover:text-white transition-colors">FAQ</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Standalone Client-Side Application Script -->
+    <script>
+      (function () {
+        'use strict';
+
+        // Sample Minimalist CSV Data
+        var SAMPLE_CSV = [
+          'Name,Department,Role,Status,Salary,StartDate',
+          'Emma Watson,Engineering,Frontend Lead,Active,135000,2022-03-15',
+          'Liam Chen,Engineering,Backend Architect,Active,142000,2021-08-01',
+          'Sophia Rodriguez,Product,Lead Designer,Active,128000,2023-01-10',
+          'Marcus Johnson,Finance,Risk Analyst,Active,115000,2022-11-20',
+          'Aisha Patel,Marketing,Growth Specialist,Active,108000,2023-05-04',
+          'David Kim,Operations,Security Officer,On Leave,122000,2020-09-12'
+        ].join('\n');
+
+        // Application State
+        var appState = {
+          fileName: '',
+          headers: [],
+          rows: [], // array of objects { [header]: value }
+          sortColumn: null, // string
+          sortDirection: null, // 'asc' | 'desc' | null
+          searchQuery: ''
+        };
+
+        // DOM Elements
+        var initialView = document.getElementById('initial-drop-view');
+        var spreadsheetView = document.getElementById('spreadsheet-view');
+        var dropzoneArea = document.getElementById('dropzone-area');
+        var fileInput = document.getElementById('file-input');
+        var activeFilename = document.getElementById('active-filename');
+        var activeRecordCount = document.getElementById('active-record-count');
+        var searchInput = document.getElementById('table-search-input');
+        var tableThead = document.getElementById('spreadsheet-thead');
+        var tableTbody = document.getElementById('spreadsheet-tbody');
+        var emptySearchAlert = document.getElementById('table-empty-search');
+        var btnAddRow = document.getElementById('btn-add-row');
+        var btnCopyTable = document.getElementById('btn-copy-table');
+        var copyTableLabel = document.getElementById('copy-table-label');
+        var btnDownloadCsv = document.getElementById('btn-download-csv');
+        var btnDownloadJson = document.getElementById('btn-download-json');
+        var btnOpenAnother = document.getElementById('btn-open-another');
+        var btnSampleTop = document.getElementById('btn-sample-top');
+        var btnSampleDrop = document.getElementById('btn-sample-drop');
+        var btnThemeToggle = document.getElementById('btn-theme-toggle');
+
+        // Helper: Parse CSV Line supporting quoted delimiters and double-quotes
+        function parseCsvRow(line, delimiter) {
+          delimiter = delimiter || ',';
+          var result = [];
+          var current = '';
+          var inQuotes = false;
+          for (var i = 0; i < line.length; i++) {
+            var ch = line[i];
+            var next = line[i + 1];
+            if (inQuotes) {
+              if (ch === '"' && next === '"') {
+                current += '"';
+                i++;
+              } else if (ch === '"') {
+                inQuotes = false;
+              } else {
+                current += ch;
+              }
+            } else {
+              if (ch === '"') {
+                inQuotes = true;
+              } else if (ch === delimiter) {
+                result.push(current);
+                current = '';
+              } else {
+                current += ch;
+              }
+            }
+          }
+          result.push(current);
+          return result;
+        }
+
+        // Parse Raw Text (CSV, TSV, or JSON) into headers and rows
+        function parseInputData(rawText, defaultFileName) {
+          var trimmed = rawText.trim();
+          if (!trimmed) return null;
+
+          // Check if JSON
+          if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+            try {
+              var parsed = JSON.parse(trimmed);
+              var arr = Array.isArray(parsed) ? parsed : [parsed];
+              if (arr.length === 0) return null;
+
+              // Collect all headers
+              var headerSet = new Set();
+              arr.forEach(function (item) {
+                if (typeof item === 'object' && item !== null) {
+                  Object.keys(item).forEach(function (k) {
+                    headerSet.add(k);
+                  });
+                }
+              });
+              var headers = Array.from(headerSet);
+              var rows = arr.map(function (item) {
+                var rowObj = {};
+                headers.forEach(function (h) {
+                  var v = item[h];
+                  rowObj[h] = v === null || v === undefined ? '' : String(v);
+                });
+                return rowObj;
+              });
+
+              return {
+                fileName: defaultFileName || 'dataset.json',
+                headers: headers,
+                rows: rows
+              };
+            } catch (e) {
+              // fall through to CSV parser
+            }
+          }
+
+          // CSV/TSV Parser
+          var lines = trimmed.split(/\r?\n/).filter(function (l) {
+            return l.trim().length > 0;
+          });
+          if (lines.length === 0) return null;
+
+          // Detect delimiter
+          var firstLine = lines[0];
+          var delimiter = ',';
+          if (firstLine.indexOf('\t') !== -1) delimiter = '\t';
+          else if (firstLine.indexOf(';') !== -1 && firstLine.indexOf(',') === -1) delimiter = ';';
+
+          var rawHeaders = parseCsvRow(firstLine, delimiter);
+          var headers = rawHeaders.map(function (h, i) {
+            return h.trim() || 'Column_' + (i + 1);
+          });
+
+          var rows = [];
+          for (var i = 1; i < lines.length; i++) {
+            var values = parseCsvRow(lines[i], delimiter);
+            var rowObj = {};
+            headers.forEach(function (h, colIdx) {
+              rowObj[h] = values[colIdx] !== undefined ? values[colIdx].trim() : '';
+            });
+            rows.push(rowObj);
+          }
+
+          return {
+            fileName: defaultFileName || 'spreadsheet.csv',
+            headers: headers,
+            rows: rows
+          };
+        }
+
+        // Load Dataset into State & Switch View
+        function loadDataset(parsedData) {
+          if (!parsedData || parsedData.headers.length === 0) return;
+
+          appState.fileName = parsedData.fileName;
+          appState.headers = parsedData.headers;
+          appState.rows = parsedData.rows;
+          appState.sortColumn = null;
+          appState.sortDirection = null;
+          appState.searchQuery = '';
+          searchInput.value = '';
+
+          // Transition smoothly from dropzone to spreadsheet view
+          initialView.classList.add('hidden');
+          spreadsheetView.classList.remove('hidden');
+
+          renderSpreadsheet();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Return to Initial Dropzone View
+        function resetToDropView() {
+          appState.fileName = '';
+          appState.headers = [];
+          appState.rows = [];
+          fileInput.value = '';
+
+          spreadsheetView.classList.add('hidden');
+          initialView.classList.remove('hidden');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Filter and Sort rows based on state
+        function getFilteredAndSortedRows() {
+          var filtered = appState.rows.slice();
+
+          // Search Filter
+          if (appState.searchQuery) {
+            var q = appState.searchQuery.toLowerCase();
+            filtered = filtered.filter(function (row) {
+              return appState.headers.some(function (h) {
+                var cell = String(row[h] || '').toLowerCase();
+                return cell.indexOf(q) !== -1;
+              });
+            });
+          }
+
+          // Column Sort
+          if (appState.sortColumn && appState.sortDirection) {
+            var col = appState.sortColumn;
+            var isAsc = appState.sortDirection === 'asc';
+            filtered.sort(function (a, b) {
+              var valA = a[col] || '';
+              var valB = b[col] || '';
+
+              var numA = Number(valA);
+              var numB = Number(valB);
+              var isNumeric = valA !== '' && valB !== '' && !isNaN(numA) && !isNaN(numB);
+
+              if (isNumeric) {
+                return isAsc ? numA - numB : numB - numA;
+              }
+              return isAsc ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA));
+            });
+          }
+
+          return filtered;
+        }
+
+        // Render Table Headers & Body
+        function renderSpreadsheet() {
+          var rowsToDisplay = getFilteredAndSortedRows();
+
+          // Update header info
+          activeFilename.textContent = appState.fileName;
+          activeRecordCount.textContent =
+            rowsToDisplay.length + (rowsToDisplay.length === 1 ? ' row' : ' rows') + ' · ' +
+            appState.headers.length + (appState.headers.length === 1 ? ' column' : ' columns');
+
+          // Render THEAD
+          tableThead.innerHTML = '';
+          var trHead = document.createElement('tr');
+
+          // Row Index Header (#)
+          var thIndex = document.createElement('th');
+          thIndex.className = 'w-12 px-3 py-2.5 text-right font-mono text-[11px] text-slate-400 border-r border-slate-200 dark:border-slate-800';
+          thIndex.textContent = '#';
+          trHead.appendChild(thIndex);
+
+          // Column Headers
+          appState.headers.forEach(function (h) {
+            var th = document.createElement('th');
+            th.className =
+              'px-3.5 py-2.5 border-r border-slate-200 dark:border-slate-800 last:border-r-0 cursor-pointer hover:bg-slate-200/60 dark:hover:bg-slate-800/60 transition-colors whitespace-nowrap group';
+
+            var flexWrapper = document.createElement('div');
+            flexWrapper.className = 'flex items-center justify-between gap-2';
+
+            var nameSpan = document.createElement('span');
+            nameSpan.textContent = h;
+            flexWrapper.appendChild(nameSpan);
+
+            var iconSpan = document.createElement('span');
+            iconSpan.className = 'text-xs text-slate-400 font-normal';
+            if (appState.sortColumn === h) {
+              iconSpan.textContent = appState.sortDirection === 'asc' ? '▲' : '▼';
+              iconSpan.className = 'text-xs text-indigo-600 dark:text-indigo-400 font-bold';
+            } else {
+              iconSpan.textContent = '⇅';
+              iconSpan.className = 'text-xs text-slate-300 dark:text-slate-600 group-hover:text-slate-500';
+            }
+            flexWrapper.appendChild(iconSpan);
+
+            th.appendChild(flexWrapper);
+
+            // Sort on click
+            th.addEventListener('click', function () {
+              if (appState.sortColumn === h) {
+                if (appState.sortDirection === 'asc') {
+                  appState.sortDirection = 'desc';
+                } else if (appState.sortDirection === 'desc') {
+                  appState.sortColumn = null;
+                  appState.sortDirection = null;
+                }
+              } else {
+                appState.sortColumn = h;
+                appState.sortDirection = 'asc';
+              }
+              renderSpreadsheet();
+            });
+
+            trHead.appendChild(th);
+          });
+
+          // Action column header (delete row)
+          var thAction = document.createElement('th');
+          thAction.className = 'w-10 px-2 py-2.5 text-center text-slate-400';
+          thAction.textContent = '';
+          trHead.appendChild(thAction);
+
+          tableThead.appendChild(trHead);
+
+          // Render TBODY
+          tableTbody.innerHTML = '';
+          if (rowsToDisplay.length === 0) {
+            emptySearchAlert.classList.remove('hidden');
+            return;
+          }
+          emptySearchAlert.classList.add('hidden');
+
+          rowsToDisplay.forEach(function (row, rowIndex) {
+            var tr = document.createElement('tr');
+            tr.className = 'hover:bg-slate-50 dark:hover:bg-slate-800/40 group transition-colors';
+
+            // Index Cell
+            var tdIdx = document.createElement('td');
+            tdIdx.className = 'px-3 py-2 text-right font-mono text-xs text-slate-400 border-r border-slate-200 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-950/40 select-none';
+            tdIdx.textContent = String(rowIndex + 1);
+            tr.appendChild(tdIdx);
+
+            // Data Cells (Inline Editable)
+            appState.headers.forEach(function (h) {
+              var td = document.createElement('td');
+              var val = row[h] !== undefined ? row[h] : '';
+              var isNum = val !== '' && !isNaN(Number(val));
+
+              td.className =
+                'px-3.5 py-2 max-w-[280px] truncate border-r border-slate-200 dark:border-slate-800 last:border-r-0 cursor-text focus-within:bg-indigo-50/50 dark:focus-within:bg-indigo-950/30 ' +
+                (isNum ? 'text-right text-indigo-950 dark:text-indigo-200' : 'text-slate-800 dark:text-slate-200');
+
+              td.textContent = val;
+              td.setAttribute('title', 'Click to edit: ' + val);
+
+              // Inline Edit Handler
+              td.addEventListener('click', function (e) {
+                if (td.querySelector('input')) return;
+                var currentVal = row[h] || '';
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.value = currentVal;
+                input.className =
+                  'w-full bg-white dark:bg-slate-950 border border-indigo-500 rounded px-1.5 py-0.5 text-xs text-slate-900 dark:text-slate-100 font-mono focus:outline-none';
+
+                td.textContent = '';
+                td.appendChild(input);
+                input.focus();
+                input.select();
+
+                function saveCell() {
+                  var newVal = input.value;
+                  row[h] = newVal;
+                  td.textContent = newVal;
+                  td.setAttribute('title', 'Click to edit: ' + newVal);
+                }
+
+                input.addEventListener('blur', saveCell);
+                input.addEventListener('keydown', function (evt) {
+                  if (evt.key === 'Enter') {
+                    input.blur();
+                  } else if (evt.key === 'Escape') {
+                    td.textContent = currentVal;
+                  }
+                });
+              });
+
+              tr.appendChild(td);
+            });
+
+            // Delete Row Cell
+            var tdDel = document.createElement('td');
+            tdDel.className = 'px-2 py-2 text-center';
+            var delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-600 transition-opacity';
+            delBtn.setAttribute('title', 'Delete row');
+            delBtn.innerHTML = '<i data-lucide="trash-2" class="w-3.5 h-3.5"></i>';
+            delBtn.addEventListener('click', function () {
+              var actualIdx = appState.rows.indexOf(row);
+              if (actualIdx !== -1) {
+                appState.rows.splice(actualIdx, 1);
+                renderSpreadsheet();
+              }
+            });
+            tdDel.appendChild(delBtn);
+            tr.appendChild(tdDel);
+
+            tableTbody.appendChild(tr);
+          });
+
+          // Refresh Lucide icons in table
+          if (window.lucide && window.lucide.createIcons) {
+            window.lucide.createIcons();
+          }
+        }
+
+        // Export to CSV String
+        function exportCsvString() {
+          var headers = appState.headers;
+          var escapeCell = function (val) {
+            if (val === null || val === undefined) return '';
+            var str = String(val);
+            if (str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1 || str.indexOf('\r') !== -1) {
+              return '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
+          };
+
+          var lines = [headers.map(escapeCell).join(',')];
+          appState.rows.forEach(function (r) {
+            var rowVals = headers.map(function (h) {
+              return escapeCell(r[h]);
+            });
+            lines.push(rowVals.join(','));
+          });
+          return lines.join('\n');
+        }
+
+        // Export to JSON String
+        function exportJsonString() {
+          return JSON.stringify(appState.rows, null, 2);
+        }
+
+        // Download helper
+        function triggerDownload(content, fileName, mimeType) {
+          var blob = new Blob([content], { type: mimeType });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+
+        // File Ingestion Handler
+        function handleFile(file) {
+          if (!file) return;
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            var text = e.target.result;
+            if (typeof text === 'string') {
+              var parsed = parseInputData(text, file.name);
+              if (parsed) {
+                loadDataset(parsed);
+              }
+            }
+          };
+          reader.readAsText(file);
+        }
+
+        // Event Listeners: File Input
+        fileInput.addEventListener('change', function (e) {
+          if (e.target.files && e.target.files[0]) {
+            handleFile(e.target.files[0]);
+          }
+        });
+
+        // Event Listeners: Drag and drop on dropzone
+        dropzoneArea.addEventListener('click', function (e) {
+          if (e.target !== fileInput && !e.target.closest('#btn-sample-drop')) {
+            fileInput.click();
+          }
+        });
+
+        ['dragenter', 'dragover'].forEach(function (eventName) {
+          window.addEventListener(eventName, function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzoneArea.classList.add('border-indigo-500', 'bg-indigo-50/20');
+          });
+        });
+
+        ['dragleave', 'drop'].forEach(function (eventName) {
+          window.addEventListener(eventName, function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzoneArea.classList.remove('border-indigo-500', 'bg-indigo-50/20');
+          });
+        });
+
+        window.addEventListener('drop', function (e) {
+          e.preventDefault();
+          if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleFile(e.dataTransfer.files[0]);
+          }
+        });
+
+        // Global Paste Listener (Ctrl+V anywhere)
+        window.addEventListener('paste', function (e) {
+          var activeTag = document.activeElement ? document.activeElement.tagName : '';
+          if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+
+          var pasted = (e.clipboardData || window.clipboardData).getData('text');
+          if (pasted && pasted.trim()) {
+            e.preventDefault();
+            var parsed = parseInputData(pasted, 'pasted-data.csv');
+            if (parsed) {
+              loadDataset(parsed);
+            }
+          }
+        });
+
+        // Search in Table
+        searchInput.addEventListener('input', function (e) {
+          appState.searchQuery = e.target.value;
+          renderSpreadsheet();
+        });
+
+        // Add Row Button
+        btnAddRow.addEventListener('click', function () {
+          var newRow = {};
+          appState.headers.forEach(function (h) {
+            newRow[h] = '';
+          });
+          appState.rows.unshift(newRow);
+          renderSpreadsheet();
+        });
+
+        // Copy Table to Clipboard
+        btnCopyTable.addEventListener('click', function () {
+          var csvText = exportCsvString();
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(csvText).then(function () {
+              copyTableLabel.textContent = 'Copied!';
+              setTimeout(function () {
+                copyTableLabel.textContent = 'Copy';
+              }, 1500);
+            });
+          }
+        });
+
+        // Download CSV Button
+        btnDownloadCsv.addEventListener('click', function () {
+          var csv = exportCsvString();
+          var outName = appState.fileName ? appState.fileName.replace(/\.[^/.]+$/, '') + '.csv' : 'export.csv';
+          triggerDownload(csv, outName, 'text/csv;charset=utf-8');
+        });
+
+        // Download JSON Button
+        btnDownloadJson.addEventListener('click', function () {
+          var json = exportJsonString();
+          var outName = appState.fileName ? appState.fileName.replace(/\.[^/.]+$/, '') + '.json' : 'export.json';
+          triggerDownload(json, outName, 'application/json');
+        });
+
+        // Open Another File / Close
+        btnOpenAnother.addEventListener('click', resetToDropView);
+
+        // Load Sample File Buttons
+        function openSample() {
+          var parsed = parseInputData(SAMPLE_CSV, 'sample-team-roster.csv');
+          if (parsed) {
+            loadDataset(parsed);
+          }
+        }
+        btnSampleTop.addEventListener('click', openSample);
+        btnSampleDrop.addEventListener('click', function (e) {
+          e.stopPropagation();
+          openSample();
+        });
+
+        // Theme Toggle
+        btnThemeToggle.addEventListener('click', function () {
+          document.documentElement.classList.toggle('dark');
+        });
+
+        // Initialize Lucide Icons
+        if (window.lucide && window.lucide.createIcons) {
+          window.lucide.createIcons();
+        }
+      })();
+    </script>
+  </body>
+</html>
